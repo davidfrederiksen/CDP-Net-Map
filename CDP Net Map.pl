@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 # cdppoll.pl
+# I originally found this script on the internet and updated it for the latest version of Net::SNMP. 
+# I unfortunately do not remember where I found this, I am only posting it here because I have made 
+# some very minor changes to it.
 use strict;
 use Net::SNMP;
 my($error,$session,$seed_oid,$oid_root,$community,$hostname,$seed_ip);
