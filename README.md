@@ -1,5 +1,5 @@
 # CDP-Net-Map
-  PERL script to create a network map with CDP. Usage "CDP Net Map.pl" \<Seed IP\> where \<Seed IP\> is the IP address of one of the Cisco devices on the network. 
+  PERL script to create a network map with CDP. Usage "CDP Net Map.pl" \<Seed IP\>; where \<Seed IP\> is the IP address of one of the Cisco devices on the network. 
   
   Requires Net::SNMP be installed as well as the Net-SNMP CPAN module. 
   
