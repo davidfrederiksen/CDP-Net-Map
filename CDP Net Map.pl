@@ -57,15 +57,13 @@ while(@todo){ #Grab a target and go to work
     sub get_oids{
         my($starting_oid , $new_oid , $unique_oid , $result , $crap);
         my($ip , $name , $port , $type);
-		my $counter;
         $starting_oid = $_[0];
         $new_oid = $starting_oid ;
         $counter = 0;
         
         while(Net::SNMP::oid_base_match($starting_oid,$new_oid)){
-			$counter++;
             $result = $session->get_next_request(($new_oid));
-			print "No request result!\n" unless (defined $result);
+	    print "No request result!\n" unless (defined $result);
             return  unless (defined $result);
             ($new_oid , $crap) = %$result;
             if (Net::SNMP::oid_base_match($starting_oid,$new_oid)){
@@ -78,7 +76,6 @@ while(@todo){ #Grab a target and go to work
             @todo=(@todo,$ip);
             write;
             get_oids($new_oid);
-            
             }
         }
 #Format the report
@@ -123,8 +120,3 @@ $ip,				$name,					$port,					    $type
             return $value;
 
         }
-
-
-
-
-
