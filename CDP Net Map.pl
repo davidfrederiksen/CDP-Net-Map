@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# cdppoll.pl
 # I originally found this script on the internet and updated it for the latest version of Net::SNMP. 
 # I unfortunately do not remember where I found this, I am only posting it here because I have made 
 # some very minor changes to it.
@@ -11,16 +10,17 @@ my(@todo);
 $done{"0.0.0.0"}=1; 
 
 
+
 #We need a startin point, get an IP from command line
 die "usage: $0 seedip" unless ( @ARGV == 1 ); 
 $seed_ip = $ARGV[0];
 die "usage: $0 seedip" unless ($seed_ip =~ m{\d+\.\d+\.\d+\.\d+});
 
 
-#Prompt for SNMP community string
+Prompt for SNMP community string
 print "community: ";
 chomp($community = <STDIN>);
-
+print "Community = ".$community;
 @todo=($seed_ip); #List of possible targets
 $oid_root = "1.3.6.1.4.1.9.9.23.1.2.1.1";
 $seed_oid = ("$oid_root".".3");
@@ -37,9 +37,9 @@ while(@todo){ #Grab a target and go to work
 
 
         $done{$hostname}=1; #Remember that we checked this IP 
-
         #Open SNMP session
         ($session,$error) = Net::SNMP->session(Hostname => $hostname, Community => $community);
+		print "No session!\n" unless($session);
         return unless($session);
     
         get_oids($seed_oid); #Get the SNMP info for this target
@@ -57,12 +57,15 @@ while(@todo){ #Grab a target and go to work
     sub get_oids{
         my($starting_oid , $new_oid , $unique_oid , $result , $crap);
         my($ip , $name , $port , $type);
+		my $counter;
         $starting_oid = $_[0];
         $new_oid = $starting_oid ;
-        
+        $counter = 0;
         
         while(Net::SNMP::oid_base_match($starting_oid,$new_oid)){
+			$counter++;
             $result = $session->get_next_request(($new_oid));
+			print "No request result!\n" unless (defined $result);
             return  unless (defined $result);
             ($new_oid , $crap) = %$result;
             if (Net::SNMP::oid_base_match($starting_oid,$new_oid)){
@@ -79,9 +82,10 @@ while(@todo){ #Grab a target and go to work
             }
         }
 #Format the report
-#format STDOUT =  @<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<< 
-#				$ip,				$name,								$port,					$type. 
-#				.
+format STDOUT =  
+@<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+$ip,				$name,					$port,					    $type
+.
     }
 
         sub Convert_IP{ #This sub converts a hex IP to standard xxx.xxx.xxx.xxx format 
@@ -114,7 +118,7 @@ while(@todo){ #Grab a target and go to work
             my($crap , $value , $result);
             my($oid) = $_[0];
             $result = $session->get_request("$oid");
-            #return unless (defined $result);
+            return unless (defined $result);
             ($crap , $value) = %$result;
             return $value;
 
@@ -122,61 +126,5 @@ while(@todo){ #Grab a target and go to work
 
 
 
-=head1 Name
-    cdppoll.pl
 
-=head1 Summary
- This script takes one IP as an argument, uses SNMP to find
- that IPs CDP Neighbors, and then uses the IPs it gathers
- to find more CDP neighbors.
- 
- Your network infrastructure should get mapped pretty
- quickly assuming that all of your devices are:
-     1. Cisco routers or switches
-     2. Using the same Read-Only Community string
-     3. Permitting SNMP traffic to the box you are 
-        running the script from.
-       
- The network that this was tested on is composed of:
-     2600 and 3600 series routers
-     2900, 3500, 6500 series Catalyst switches
-     2500 series terminal access device
 
-=head1 Updated
-
- 5-17-2001
-  Cleaned things up a lot more. Started using POD, and modified the in
-+line comments
-  to improve readability.
-  Got rid of get_target sub (it really shouldn't have been a sub at al
-+l)
-  Code now works with strict
-
- 5-16-2001 
-  Cleaned up the code a little bit. Made the get_ip get_name get_port 
-+and get_type 
-  subs a single sub Get_SNMP_Info 
-  Moved all of the IP conversion code into its own sub Convert_IP
-  The code should be several steps closer to being strict compliant.
- 
-
- 5-16-2001 
-  Corrected a problem with how the script reacted if it has a neighbor
-+ with no IPaddress. 
-  It will now display 0.0.0.0 when it sees a null value for IP.
-
- 5-16-2001 
-  Initial working code posted
- 
-  
-=head1 TODO  
-  1. Add in better error handling and error messages
-  2. Find a better way to check for IPs, currently
-     999.9999.9999 would be seen as a valid target 
-  3. Work on making the subroutines more blackbox-ish
-  
-=head1 Thanks
- Hopefully this will be usefull to someone other than myself
- Thanks to all the monks that answered my basic questions
- instead of telling me to RTFM
-=cut
